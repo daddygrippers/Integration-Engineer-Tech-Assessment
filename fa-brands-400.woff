@@ -1,78 +1,149 @@
-/// Makes an element's :before pseudoelement a FontAwesome icon.
-/// @param {string} $content Optional content value to use.
-/// @param {string} $category Optional category to use.
-/// @param {string} $where Optional pseudoelement to target (before or after).
-@mixin icon($content: false, $category: regular, $where: before) {
+// html-grid.scss v1.0 | @ajlkn | MIT licensed */
 
-	text-decoration: none;
+// Mixins.
 
-	&:#{$where} {
+	/// Initializes the current element as an HTML grid.
+	/// @param {mixed} $gutters Gutters (either a single number to set both column/row gutters, or a list to set them individually).
+	/// @param {mixed} $suffix Column class suffix (optional; either a single suffix or a list).
+	@mixin html-grid($gutters: 1.5em, $suffix: '') {
 
-		@if $content {
-			content: $content;
-		}
+		// Initialize.
+			$cols: 12;
+			$multipliers: 0, 0.25, 0.5, 1, 1.50, 2.00;
+			$unit: 100% / $cols;
 
-		-moz-osx-font-smoothing: grayscale;
-		-webkit-font-smoothing: antialiased;
-		display: inline-block;
-		font-style: normal;
-		font-variant: normal;
-		text-rendering: auto;
-		line-height: 1;
-		text-transform: none !important;
+			// Suffixes.
+				$suffixes: null;
 
-		@if ($category == brands) {
-			font-family: 'Font Awesome 5 Brands';
-		}
-		@elseif ($category == solid) {
-			font-family: 'Font Awesome 5 Free';
-			font-weight: 900;
-		}
-		@else {
-			font-family: 'Font Awesome 5 Free';
-			font-weight: 400;
-		}
+				@if (type-of($suffix) == 'list') {
+					$suffixes: $suffix;
+				}
+				@else {
+					$suffixes: ($suffix);
+				}
+
+			// Gutters.
+				$guttersCols: null;
+				$guttersRows: null;
+
+				@if (type-of($gutters) == 'list') {
+
+					$guttersCols: nth($gutters, 1);
+					$guttersRows: nth($gutters, 2);
+
+				}
+				@else {
+
+					$guttersCols: $gutters;
+					$guttersRows: 0;
+
+				}
+
+		// Row.
+			display: flex;
+			flex-wrap: wrap;
+			box-sizing: border-box;
+			align-items: stretch;
+
+			// Columns.
+				> * {
+					box-sizing: border-box;
+				}
+
+			// Gutters.
+				&.gtr-uniform {
+					> * {
+						> :last-child {
+							margin-bottom: 0;
+						}
+					}
+				}
+
+			// Alignment.
+				&.aln-left {
+					justify-content: flex-start;
+				}
+
+				&.aln-center {
+					justify-content: center;
+				}
+
+				&.aln-right {
+					justify-content: flex-end;
+				}
+
+				&.aln-top {
+					align-items: flex-start;
+				}
+
+				&.aln-middle {
+					align-items: center;
+				}
+
+				&.aln-bottom {
+					align-items: flex-end;
+				}
+
+		// Step through suffixes.
+			@each $suffix in $suffixes {
+
+				// Suffix.
+					@if ($suffix != '') {
+						$suffix: '-' + $suffix;
+					}
+					@else {
+						$suffix: '';
+					}
+
+				// Row.
+
+					// Important.
+						> .imp#{$suffix} {
+							order: -1;
+						}
+
+					// Columns, offsets.
+						@for $i from 1 through $cols {
+							> .col-#{$i}#{$suffix} {
+								width: $unit * $i;
+							}
+
+							> .off-#{$i}#{$suffix} {
+								margin-left: $unit * $i;
+							}
+						}
+
+					// Step through multipliers.
+						@each $multiplier in $multipliers {
+
+							// Gutters.
+								$class: null;
+
+								@if ($multiplier != 1) {
+									$class: '.gtr-' + ($multiplier * 100);
+								}
+
+								&#{$class} {
+									margin-top: ($guttersRows * $multiplier * -1);
+									margin-left: ($guttersCols * $multiplier * -1);
+
+									> * {
+										padding: ($guttersRows * $multiplier) 0 0 ($guttersCols * $multiplier);
+									}
+
+									// Uniform.
+										&.gtr-uniform {
+											margin-top: $guttersCols * $multiplier * -1;
+
+											> * {
+												padding-top: $guttersCols * $multiplier;
+											}
+										}
+
+								}
+
+						}
+
+			}
 
 	}
-
-}
-
-/// Applies padding to an element, taking the current element-margin value into account.
-/// @param {mixed} $tb Top/bottom padding.
-/// @param {mixed} $lr Left/right padding.
-/// @param {list} $pad Optional extra padding (in the following order top, right, bottom, left)
-/// @param {bool} $important If true, adds !important.
-@mixin padding($tb, $lr, $pad: (0,0,0,0), $important: null) {
-
-	@if $important {
-		$important: '!important';
-	}
-
-	$x: 0.1em;
-
-	@if unit(_size(element-margin)) == 'rem' {
-		$x: 0.1rem;
-	}
-
-	padding: ($tb + nth($pad,1)) ($lr + nth($pad,2)) max($x, $tb - _size(element-margin) + nth($pad,3)) ($lr + nth($pad,4)) #{$important};
-
-}
-
-/// Encodes a SVG data URL so IE doesn't choke (via codepen.io/jakob-e/pen/YXXBrp).
-/// @param {string} $svg SVG data URL.
-/// @return {string} Encoded SVG data URL.
-@function svg-url($svg) {
-
-	$svg: str-replace($svg, '"', '\'');
-	$svg: str-replace($svg, '%', '%25');
-	$svg: str-replace($svg, '<', '%3C');
-	$svg: str-replace($svg, '>', '%3E');
-	$svg: str-replace($svg, '&', '%26');
-	$svg: str-replace($svg, '#', '%23');
-	$svg: str-replace($svg, '{', '%7B');
-	$svg: str-replace($svg, '}', '%7D');
-	$svg: str-replace($svg, ';', '%3B');
-
-	@return url("data:image/svg+xml;charset=utf8,#{$svg}");
-
-}

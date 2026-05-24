@@ -4,112 +4,60 @@
 /// Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 ///
 
-/* Intro */
+/* Header */
 
-	#intro {
+	#header {
 		@include color-typography(invert);
-		@include color-button(invert);
-		@include padding(_size(padding) * 4, _size(padding) * 2);
 		@include vendor('align-items', 'center');
 		@include vendor('display', 'flex');
 		@include vendor('flex-direction', 'column');
 		@include vendor('justify-content', 'flex-end');
-		@include vendor('transition', (
-			'opacity 1s ease',
-			'transform 1s ease'
-		));
+		@include vendor('pointer-events', 'none');
+		@include vendor('user-select', 'none');
+		height: 20rem;
+		padding-bottom: (_size(padding) * 4);
 		position: relative;
-		cursor: default;
 		text-align: center;
-		z-index: 1;
-		min-height: 100vh;
+		z-index: 2;
 
-		h1 {
-			font-size: 5rem;
-			line-height: 1;
-		}
-
-		p {
-			font-size: 1.25rem;
-			font-style: italic;
-			margin-top: -0.25rem;
-			text-align: center;
-		}
-
-		& + #header {
-			margin-top: -20rem;
-
-			.logo {
-				@include vendor('transform', 'translateY(2rem)');
-				opacity: 0;
-				visibility: hidden;
-			}
-		}
-
-		&.hidden {
-			@include vendor('pointer-events', 'none');
-			@include vendor('transform', 'translateY(2rem)');
+		.logo {
 			@include vendor('transition', (
+				'border-color #{_duration(transition)} ease-in-out',
+				'color #{_duration(transition)} ease-in-out',
 				'opacity 0.5s ease',
 				'transform 0.5s ease',
 				'visibility 0.5s'
 			));
-			opacity: 0;
-			visibility: hidden;
+			@include vendor('pointer-events', 'auto');
+			border-style: solid;
+			border-color: _palette(invert, border);
+			border-width: 5px !important;
+			font-family: _font(family-heading);
+			font-size: 2.25rem;
+			font-weight: _font(weight-heading);
+			letter-spacing: 0.075em;
+			line-height: 1;
+			padding: 1rem 1.75rem;
+			text-transform: uppercase;
+			visibility: visible;
 
-			& + #header {
-				.logo {
-					@include vendor('transform', 'translateY(0)');
-					opacity: 1;
-					visibility: visible;
-				}
-			}
-		}
-
-		body.is-preload & {
-			@include vendor('transform', 'translateY(2rem)');
-			opacity: 0;
-
-			&:not(.hidden) {
-				& + #header + #nav {
-					@include vendor('transform', 'translateY(4rem)');
-					opacity: 0;
-				}
+			&:hover {
+				border-color: _palette(invert, accent) !important;
+				color: _palette(invert, accent) !important;
 			}
 		}
 
 		@include breakpoint('<=medium') {
-			@include padding(_size(padding) * 2, _size(padding) * 2);
-			min-height: 90vh;
-
-			p {
-				br {
-					display: none;
-				}
-			}
-
-			& + #header {
-				margin-top: -14rem;
-			}
+			height: 14rem;
+			padding-bottom: (_size(padding) * 2);
 		}
 
 		@include breakpoint('<=small') {
-			@include padding(_size(padding) * 1.5, _size(padding) * 1);
-			min-height: 80vh;
+			padding-bottom: (_size(padding) * 1.5);
 
-			h1 {
-				font-size: 3.25rem;
-				line-height: 1.1;
-				margin-bottom: _size(element-margin) * 0.5;
-			}
-
-			p {
-				font-size: 1rem;
-				margin-top: 0rem;
-			}
-
-			.actions {
-				display: none;
+			.logo {
+				font-size: 1.75rem;
+				border-width: 3px !important;
 			}
 		}
 	}

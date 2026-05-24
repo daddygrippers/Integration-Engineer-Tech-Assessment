@@ -1,338 +1,223 @@
-// fixed-grid.scss v1.0 | @ajlkn | MIT licensed */
+// breakpoints.scss v1.0 | @ajlkn | MIT licensed */
+
+// Vars.
+
+	/// Breakpoints.
+	/// @var {list}
+	$breakpoints: () !global;
 
 // Mixins.
 
-	/// Initializes base fixed-grid classes.
-	/// @param {string} $vertical-align Vertical alignment of cells.
-	/// @param {string} $horizontal-align Horizontal alignment of cells.
-	@mixin fixed-grid-base($vertical-align: null, $horizontal-align: null) {
+	/// Sets breakpoints.
+	/// @param {map} $x Breakpoints.
+	@mixin breakpoints($x: ()) {
+		$breakpoints: $x !global;
+	}
 
-		// Grid.
-			@include vendor('display', 'flex');
-			@include vendor('flex-wrap', 'wrap');
+	/// Wraps @content in a @media block targeting a specific orientation.
+	/// @param {string} $orientation Orientation.
+	@mixin orientation($orientation) {
+		@media screen and (orientation: #{$orientation}) {
+			@content;
+		}
+	}
 
-			// Vertical alignment.
-				@if ($vertical-align == top) {
-					@include vendor('align-items', 'flex-start');
+	/// Wraps @content in a @media block using a given query.
+	/// @param {string} $query Query.
+	@mixin breakpoint($query: null) {
+
+		$breakpoint: null;
+		$op: null;
+		$media: null;
+
+		// Determine operator, breakpoint.
+
+			// Greater than or equal.
+				@if (str-slice($query, 0, 2) == '>=') {
+
+					$op: 'gte';
+					$breakpoint: str-slice($query, 3);
+
 				}
-				@else if ($vertical-align == bottom) {
-					@include vendor('align-items', 'flex-end');
+
+			// Less than or equal.
+				@elseif (str-slice($query, 0, 2) == '<=') {
+
+					$op: 'lte';
+					$breakpoint: str-slice($query, 3);
+
 				}
-				@else if ($vertical-align == center) {
-					@include vendor('align-items', 'center');
+
+			// Greater than.
+				@elseif (str-slice($query, 0, 1) == '>') {
+
+					$op: 'gt';
+					$breakpoint: str-slice($query, 2);
+
 				}
+
+			// Less than.
+				@elseif (str-slice($query, 0, 1) == '<') {
+
+					$op: 'lt';
+					$breakpoint: str-slice($query, 2);
+
+				}
+
+			// Not.
+				@elseif (str-slice($query, 0, 1) == '!') {
+
+					$op: 'not';
+					$breakpoint: str-slice($query, 2);
+
+				}
+
+			// Equal.
 				@else {
-					@include vendor('align-items', 'stretch');
+
+					$op: 'eq';
+					$breakpoint: $query;
+
 				}
 
-			// Horizontal alignment.
-				@if ($horizontal-align != null) {
-					text-align: $horizontal-align;
-				}
+		// Build media.
+			@if ($breakpoint and map-has-key($breakpoints, $breakpoint)) {
 
-		// Cells.
-			> * {
-				@include vendor('flex-shrink', '1');
-				@include vendor('flex-grow', '0');
-			}
+				$a: map-get($breakpoints, $breakpoint);
 
-	}
+				// Range.
+					@if (type-of($a) == 'list') {
 
-	/// Sets up fixed-grid columns.
-	/// @param {integer} $columns Columns.
-	@mixin fixed-grid-columns($columns) {
+						$x: nth($a, 1);
+						$y: nth($a, 2);
 
-		> * {
-			$cell-width: 100% / $columns;
-			width: #{$cell-width};
-		}
+						// Max only.
+							@if ($x == null) {
 
-	}
+								// Greater than or equal (>= 0 / anything)
+									@if ($op == 'gte') {
+										$media: 'screen';
+									}
 
-	/// Sets up fixed-grid gutters.
-	/// @param {integer} $columns Columns.
-	/// @param {number} $gutters Gutters.
-	@mixin fixed-grid-gutters($columns, $gutters) {
+								// Less than or equal (<= y)
+									@elseif ($op == 'lte') {
+										$media: 'screen and (max-width: ' + $y + ')';
+									}
 
-		// Apply padding.
-			> * {
-				$cell-width: 100% / $columns;
+								// Greater than (> y)
+									@elseif ($op == 'gt') {
+										$media: 'screen and (min-width: ' + ($y + 1) + ')';
+									}
 
-				padding: ($gutters * 0.5);
-				width: $cell-width;
-			}
+								// Less than (< 0 / invalid)
+									@elseif ($op == 'lt') {
+										$media: 'screen and (max-width: -1px)';
+									}
 
-	}
+								// Not (> y)
+									@elseif ($op == 'not') {
+										$media: 'screen and (min-width: ' + ($y + 1) + ')';
+									}
 
-	/// Sets up fixed-grid gutters (flush).
-	/// @param {integer} $columns Columns.
-	/// @param {number} $gutters Gutters.
-	@mixin fixed-grid-gutters-flush($columns, $gutters) {
-
-		// Apply padding.
-			> * {
-				$cell-width: 100% / $columns;
-				$cell-width-pad: $gutters / $columns;
-
-				padding: ($gutters * 0.5);
-				width: calc(#{$cell-width} + #{$cell-width-pad});
-			}
-
-		// Clear top/bottom gutters.
-			> :nth-child(-n + #{$columns}) {
-				padding-top: 0;
-			}
-
-			> :nth-last-child(-n + #{$columns}) {
-				padding-bottom: 0;
-			}
-
-		// Clear left/right gutters.
-			> :nth-child(#{$columns}n + 1) {
-				padding-left: 0;
-			}
-
-			> :nth-child(#{$columns}n) {
-				padding-right: 0;
-			}
-
-		// Adjust widths of leftmost and rightmost cells.
-			> :nth-child(#{$columns}n + 1),
-			> :nth-child(#{$columns}n) {
-				$cell-width: 100% / $columns;
-				$cell-width-pad: ($gutters / $columns) - ($gutters / 2);
-
-				width: calc(#{$cell-width} + #{$cell-width-pad});
-			}
-
-	}
-
-	/// Reset fixed-grid gutters (flush only).
-	/// Used to override a previous set of fixed-grid gutter classes.
-	/// @param {integer} $columns Columns.
-	/// @param {number} $gutters Gutters.
-	/// @param {integer} $prev-columns Previous columns.
-	@mixin fixed-grid-gutters-flush-reset($columns, $gutters, $prev-columns) {
-
-		// Apply padding.
-			> * {
-				$cell-width: 100% / $prev-columns;
-				$cell-width-pad: $gutters / $prev-columns;
-
-				padding: ($gutters * 0.5);
-				width: calc(#{$cell-width} + #{$cell-width-pad});
-			}
-
-		// Clear top/bottom gutters.
-			> :nth-child(-n + #{$prev-columns}) {
-				padding-top: ($gutters * 0.5);
-			}
-
-			> :nth-last-child(-n + #{$prev-columns}) {
-				padding-bottom: ($gutters * 0.5);
-			}
-
-		// Clear left/right gutters.
-			> :nth-child(#{$prev-columns}n + 1) {
-				padding-left: ($gutters * 0.5);
-			}
-
-			> :nth-child(#{$prev-columns}n) {
-				padding-right: ($gutters * 0.5);
-			}
-
-		// Adjust widths of leftmost and rightmost cells.
-			> :nth-child(#{$prev-columns}n + 1),
-			> :nth-child(#{$prev-columns}n) {
-				$cell-width: 100% / $columns;
-				$cell-width-pad: $gutters / $columns;
-
-				padding: ($gutters * 0.5);
-				width: calc(#{$cell-width} + #{$cell-width-pad});
-			}
-
-	}
-
-	/// Adds debug styles to current fixed-grid element.
-	@mixin fixed-grid-debug() {
-
-		box-shadow: 0 0 0 1px red;
-
-		> * {
-			box-shadow: inset 0 0 0 1px blue;
-			position: relative;
-
-			> * {
-				position: relative;
-				box-shadow: inset 0 0 0 1px green;
-			}
-		}
-
-	}
-
-	/// Initializes the current element as a fixed grid.
-	/// @param {integer} $columns Columns (optional).
-	/// @param {number} $gutters Gutters (optional).
-	/// @param {bool} $flush If true, clears padding around the very edge of the grid.
-	@mixin fixed-grid($settings: ()) {
-
-		// Settings.
-
-			// Debug.
-				$debug: false;
-
-				@if (map-has-key($settings, 'debug')) {
-					$debug: map-get($settings, 'debug');
-				}
-
-			// Vertical align.
-				$vertical-align: null;
-
-				@if (map-has-key($settings, 'vertical-align')) {
-					$vertical-align: map-get($settings, 'vertical-align');
-				}
-
-			// Horizontal align.
-				$horizontal-align: null;
-
-				@if (map-has-key($settings, 'horizontal-align')) {
-					$horizontal-align: map-get($settings, 'horizontal-align');
-				}
-
-			// Columns.
-				$columns: null;
-
-				@if (map-has-key($settings, 'columns')) {
-					$columns: map-get($settings, 'columns');
-				}
-
-			// Gutters.
-				$gutters: 0;
-
-				@if (map-has-key($settings, 'gutters')) {
-					$gutters: map-get($settings, 'gutters');
-				}
-
-			// Flush.
-				$flush: true;
-
-				@if (map-has-key($settings, 'flush')) {
-					$flush: map-get($settings, 'flush');
-				}
-
-		// Initialize base grid.
-			@include fixed-grid-base($vertical-align, $horizontal-align);
-
-		// Debug?
-			@if ($debug) {
-				@include fixed-grid-debug;
-			}
-
-		// Columns specified?
-			@if ($columns != null) {
-
-				// Initialize columns.
-					@include fixed-grid-columns($columns);
-
-				// Gutters specified?
-					@if ($gutters > 0) {
-
-						// Flush gutters?
-							@if ($flush) {
-
-								// Initialize gutters (flush).
-									@include fixed-grid-gutters-flush($columns, $gutters);
+								// Equal (<= y)
+									@else {
+										$media: 'screen and (max-width: ' + $y + ')';
+									}
 
 							}
 
-						// Otherwise ...
+						// Min only.
+							@else if ($y == null) {
+
+								// Greater than or equal (>= x)
+									@if ($op == 'gte') {
+										$media: 'screen and (min-width: ' + $x + ')';
+									}
+
+								// Less than or equal (<= inf / anything)
+									@elseif ($op == 'lte') {
+										$media: 'screen';
+									}
+
+								// Greater than (> inf / invalid)
+									@elseif ($op == 'gt') {
+										$media: 'screen and (max-width: -1px)';
+									}
+
+								// Less than (< x)
+									@elseif ($op == 'lt') {
+										$media: 'screen and (max-width: ' + ($x - 1) + ')';
+									}
+
+								// Not (< x)
+									@elseif ($op == 'not') {
+										$media: 'screen and (max-width: ' + ($x - 1) + ')';
+									}
+
+								// Equal (>= x)
+									@else {
+										$media: 'screen and (min-width: ' + $x + ')';
+									}
+
+							}
+
+						// Min and max.
 							@else {
 
-								// Initialize gutters.
-									@include fixed-grid-gutters($columns, $gutters);
+								// Greater than or equal (>= x)
+									@if ($op == 'gte') {
+										$media: 'screen and (min-width: ' + $x + ')';
+									}
 
+								// Less than or equal (<= y)
+									@elseif ($op == 'lte') {
+										$media: 'screen and (max-width: ' + $y + ')';
+									}
+
+								// Greater than (> y)
+									@elseif ($op == 'gt') {
+										$media: 'screen and (min-width: ' + ($y + 1) + ')';
+									}
+
+								// Less than (< x)
+									@elseif ($op == 'lt') {
+										$media: 'screen and (max-width: ' + ($x - 1) + ')';
+									}
+
+								// Not (< x and > y)
+									@elseif ($op == 'not') {
+										$media: 'screen and (max-width: ' + ($x - 1) + '), screen and (min-width: ' + ($y + 1) + ')';
+									}
+
+								// Equal (>= x and <= y)
+									@else {
+										$media: 'screen and (min-width: ' + $x + ') and (max-width: ' + $y + ')';
+									}
+
+							}
+
+					}
+
+				// String.
+					@else {
+
+						// Missing a media type? Prefix with "screen".
+							@if (str-slice($a, 0, 1) == '(') {
+								$media: 'screen and ' + $a;
+							}
+
+						// Otherwise, use as-is.
+							@else {
+								$media: $a;
 							}
 
 					}
 
 			}
 
-	}
-
-	/// Resizes a previously-initialized grid.
-	/// @param {integer} $columns Columns.
-	/// @param {number} $gutters Gutters (optional).
-	/// @param {list} $reset A list of previously-initialized grid columns (only if $flush is true).
-	/// @param {bool} $flush If true, clears padding around the very edge of the grid.
-	@mixin fixed-grid-resize($settings: ()) {
-
-		// Settings.
-
-			// Columns.
-				$columns: 1;
-
-				@if (map-has-key($settings, 'columns')) {
-					$columns: map-get($settings, 'columns');
-				}
-
-			// Gutters.
-				$gutters: 0;
-
-				@if (map-has-key($settings, 'gutters')) {
-					$gutters: map-get($settings, 'gutters');
-				}
-
-			// Previous columns.
-				$prev-columns: false;
-
-				@if (map-has-key($settings, 'prev-columns')) {
-					$prev-columns: map-get($settings, 'prev-columns');
-				}
-
-			// Flush.
-				$flush: true;
-
-				@if (map-has-key($settings, 'flush')) {
-					$flush: map-get($settings, 'flush');
-				}
-
-		// Resize columns.
-			@include fixed-grid-columns($columns);
-
-		// Gutters specified?
-			@if ($gutters > 0) {
-
-				// Flush gutters?
-					@if ($flush) {
-
-						// Previous columns specified?
-							@if ($prev-columns) {
-
-								// Convert to list if it isn't one already.
-									@if (type-of($prev-columns) != list) {
-										$prev-columns: ($prev-columns);
-									}
-
-								// Step through list of previous columns and reset them.
-									@each $x in $prev-columns {
-										@include fixed-grid-gutters-flush-reset($columns, $gutters, $x);
-									}
-
-							}
-
-						// Resize gutters (flush).
-							@include fixed-grid-gutters-flush($columns, $gutters);
-
-					}
-
-				// Otherwise ...
-					@else {
-
-						// Resize gutters.
-							@include fixed-grid-gutters($columns, $gutters);
-
-					}
-
+		// Output.
+	        @media #{$media} {
+				@content;
 			}
 
 	}

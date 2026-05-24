@@ -4,109 +4,32 @@
 /// Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 ///
 
-/* Section/Article */
+/* Row */
 
-	section, article {
-		&.special {
-			text-align: center;
-		}
-	}
+	.row {
+		@include html-grid(1.5rem);
 
-	header {
-		cursor: default;
-
-		> .date {
-			display: block;
-			font-size: 0.8rem;
-			height: 1;
-			margin: 0 0 (_size(element-margin) * 0.5) 0;
-			position: relative;
+		@include breakpoint('<=xlarge') {
+			@include html-grid(1.5rem, 'xlarge');
 		}
 
-		> p {
-			font-style: italic;
-		}
-
-		> h1 + p {
-			font-size: 1.1rem;
-			margin-top: -0.5rem;
-			line-height: 2;
-		}
-
-		> h2 + p {
-			font-size: 1rem;
-			margin-top: -0.75rem;
-		}
-
-		> h3 + p {
-			font-size: 0.9rem;
-			margin-top: -0.75rem;
-		}
-
-		> h4 + p {
-			font-size: 0.8rem;
-			margin-top: -0.75rem;
-		}
-
-		&.major {
-			margin: 0 0 (_size(element-margin) * 2) 0;
-			text-align: center;
-
-			> :last-child {
-				margin-bottom: 0;
-			}
-
-			> p {
-				margin-top: 0;
-				text-align: center;
-			}
-
-			> .date {
-				font-size: 1rem;
-				margin: 0 0 (_size(element-margin) * 2) 0;
-
-				&:before, &:after {
-					content: '';
-					display: block;
-					position: absolute;
-					top: 50%;
-					width: calc(50% - 6rem);
-					border-top: solid 2px;
-				}
-
-				&:before {
-					left: 0;
-				}
-
-				&:after {
-					right: 0;
-				}
-			}
+		@include breakpoint('<=large') {
+			@include html-grid(1.5rem, 'large');
 		}
 
 		@include breakpoint('<=medium') {
-			br {
-				display: none;
-			}
+			@include html-grid(1.5rem, 'medium');
 		}
 
 		@include breakpoint('<=small') {
-			&.major {
-				margin: 0 0 _size(element-margin) 0;
-			}
+			@include html-grid(1.5rem, 'small');
+		}
+
+		@include breakpoint('<=xsmall') {
+			@include html-grid(1.5rem, 'xsmall');
+		}
+
+		@include breakpoint('<=xxsmall') {
+			@include html-grid(1.5rem, 'xxsmall');
 		}
 	}
-
-	@mixin color-section($p: null) {
-		header {
-			&.major {
-				.date {
-					&:before, &:after {
-						border-top-color: _palette($p, border);
-					}
-				}
-			}
-		}
-	}
-
-	@include color-section;
